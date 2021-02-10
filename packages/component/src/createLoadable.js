@@ -5,6 +5,7 @@ import hoistNonReactStatics from 'hoist-non-react-statics'
 import { invariant } from './util'
 import Context from './Context'
 import { LOADABLE_SHARED } from './shared'
+import LoadableComponentError from './LoadableComponentError'
 
 const STATUS_PENDING = 'PENDING'
 const STATUS_RESOLVED = 'RESOLVED'
@@ -222,15 +223,18 @@ function createLoadable({
           this.state.result = result
           this.state.loading = false
         } catch (error) {
+          const fileName = ctor.resolve(this.props)
+          const chunkName = ctor.chunkName(this.props)
           console.error(
             'loadable-components: failed to synchronously load component, which expected to be available',
             {
-              fileName: ctor.resolve(this.props),
-              chunkName: ctor.chunkName(this.props),
+              fileName,
+              chunkName,
               error: error ? error.message : error,
             },
           )
           this.state.error = error
+          throw new LoadableComponentError(error.message, { fileName, chunkName })
         }
       }
 
@@ -271,20 +275,23 @@ function createLoadable({
 
           this.setCache(promise)
 
-          promise.then(
+          return promise.then(
             () => {
               promise.status = STATUS_RESOLVED
             },
             error => {
+              const fileName = ctor.resolve(this.props)
+              const chunkName = ctor.chunkName(this.props)
               console.error(
                 'loadable-components: failed to asynchronously load component',
                 {
-                  fileName: ctor.resolve(this.props),
-                  chunkName: ctor.chunkName(this.props),
+                  fileName,
+                  chunkName,
                   error: error ? error.message : error,
                 },
               )
               promise.status = STATUS_REJECTED
+              throw new LoadableComponentError(error.message, { fileName, chunkName })
             },
           )
         }

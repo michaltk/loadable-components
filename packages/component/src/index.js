@@ -13,4 +13,5 @@ export default loadable
 export { lazy }
 
 export { default as loadableReady } from './loadableReady'
+export { default as LoadableComponentError } from './LoadableComponentError'
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = sharedInternals
